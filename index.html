@@ -14,7 +14,9 @@
         var canvas = document.getElementById("application-canvas");
 
         // Create the app and start the update loop
-        var app = new pc.Application(canvas);
+        var app = new pc.Application(canvas, {
+            mouse: new pc.Mouse(canvas)
+        });
         app.start();
 
         // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
@@ -24,6 +26,15 @@
         app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
 
         var entity, light, camera;
+        var fromPoint = new pc.Vec3();
+        var toPoint = new pc.Vec3();
+        var ray = new pc.Ray();
+        var worldTransform = new pc.Mat4();
+        var color = new pc.Color(1, 0, 0, 1);
+        var sphere = new pc.Entity();
+        sphere.addComponent('model', { type: 'sphere' });
+        sphere.setLocalScale(0.4, 0.4, 0.4);
+        app.root.addChild(sphere);
 
         var url = "./examples/assets/statue/Statue_1.json";
 
@@ -32,6 +43,36 @@
             entity.addComponent("model");
             entity.model.model = asset.resource;
             app.root.addChild(entity);
+
+            app.mouse.on('mousemove', function(e) {
+                camera.camera.screenToWorld(e.x, e.y, camera.camera.nearClip, fromPoint);
+                camera.camera.screenToWorld(e.x, e.y, camera.camera.farClip, toPoint);
+                ray.origin.copy(fromPoint);
+                ray.direction.copy(toPoint).sub(ray.origin).normalize();
+
+                console.time('raycast');
+                var results = app.systems.camera.raycastMeshInstances(ray, entity.model.model.meshInstances);
+                console.timeEnd('raycast');
+                console.log(results);
+
+                if (results) {
+                    sphere.setPosition(results[0].point);
+                    results.forEach(function(result) {
+                        var a = result.vertices[0];
+                        var b = result.vertices[1];
+                        var c = result.vertices[2];
+                        worldTransform.copy(result.meshInstance.node.getWorldTransform());
+                        worldTransform.transformPoint(a, a);
+                        worldTransform.transformPoint(b, b);
+                        worldTransform.transformPoint(c, c);
+
+                        app.renderLine(a, b, color, pc.LINEBATCH_OVERLAY);
+                        app.renderLine(b, c, color, pc.LINEBATCH_OVERLAY);
+                        app.renderLine(c, a, color, pc.LINEBATCH_OVERLAY);
+                    });
+                }
+
+            });
         });
 
         // Create an Entity with a camera component

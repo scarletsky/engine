@@ -1,9 +1,9 @@
 /*
- PlayCanvas Engine v0.217.0-dev revision 0a97cde0
+ PlayCanvas Engine v0.217.0-dev revision ccf4167
  http://playcanvas.com
  Copyright 2011-2017 PlayCanvas Ltd. All rights reserved.
 */
-var pc = {version:"0.217.0-dev", revision:"0a97cde0", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
+var pc = {version:"0.217.0-dev", revision:"ccf4167", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
   console.warn("pc.unpack has been deprecated and will be removed shortly. Please update your code.");
 }, makeArray:function(arr) {
   var i, ret = [], length = arr.length;
@@ -3142,7 +3142,7 @@ pc.extend(pc, function() {
       if (QdN < 0) {
         return null;
       }
-      return res.copy(this.direction).scale(QdN / DdN);
+      return res.copy(this.direction).scale(QdN / DdN).add(this.origin);
     };
   }()};
   return {Ray:Ray};
@@ -19871,7 +19871,7 @@ pc.extend(pc, function() {
         } else {
           if (!this.__attributes.hasOwnProperty(key)) {
             if (script.attributes.index[key].hasOwnProperty("default")) {
-              this[key] = script.attributes.index[key].default;
+              this[key] = script.attributes.index[key]["default"];
             } else {
               this[key] = null;
             }
